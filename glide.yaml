@@ -1,0 +1,8 @@
+package: github.com/shubik22/robinhood-bot
+import:
+- package: github.com/joho/godotenv
+  version: ^1.0.0
+- package: github.com/ChimeraCoder/anaconda
+- package: github.com/ChimeraCoder/tokenbucket
+- package: github.com/leekchan/accounting
+  version: ^0.1.0
