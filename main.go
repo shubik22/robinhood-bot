@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/joho/godotenv"
@@ -17,13 +19,27 @@ func main() {
 	loadEnv()
 	twitterApi := getTwitterApi()
 	rhClient := getRobinhoodClient()
-	u := getRobinhoodData(rhClient)
-	tweetStr := createBalancesTweets(u)
-	tweet, err := twitterApi.PostTweet(tweetStr, nil)
-	if err != nil {
-		panic(err)
+
+	ticker := time.NewTicker(1 * time.Hour)
+	for {
+		tweetBalance(twitterApi, rhClient)
+		<-ticker.C
 	}
-	fmt.Print(tweet.Text)
+}
+
+func tweetBalance(twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
+	u := getRobinhoodData(rhClient)
+	tweetText := createBalancesText(u)
+	tweets := createTweetsFromText(tweetText)
+
+	for _, tweetStr := range tweets {
+		tweet, err := twitterApi.PostTweet(tweetStr, nil)
+		if err != nil {
+			log.Println(err)
+		} else {
+			log.Println("Just tweeted: ", tweet.Text)
+		}
+	}
 }
 
 func getTwitterApi() *anaconda.TwitterApi {
@@ -47,7 +63,7 @@ func getRobinhoodClient() *robinhood.Client {
 	return client
 }
 
-func createBalancesTweets(u *robinhood.User) string {
+func createBalancesText(u *robinhood.User) string {
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
 
 	var tweetStr string
@@ -67,6 +83,42 @@ func createBalancesTweets(u *robinhood.User) string {
 	tweetStr += "."
 
 	return tweetStr
+}
+
+func createTweetsFromText(text string) []string {
+	var tweets []string
+	words := strings.Split(text, " ")
+	currentTweet := getPhrase()
+	for _, word := range words {
+		if len(currentTweet) > 132 {
+			tweets = append(tweets, currentTweet)
+			currentTweet = ""
+		}
+		currentTweet += word
+		currentTweet += " "
+	}
+	tweets = append(tweets, currentTweet)
+
+	numTweets := len(tweets)
+	if numTweets > 1 {
+		for idx, tweet := range tweets {
+			tweet = fmt.Sprintf("%v(%v/%v)", tweet, idx+1, numTweets)
+			tweets[idx] = tweet
+		}
+	}
+
+	return tweets
+}
+
+func getPhrase() string {
+	phrases := [...]string{
+		"U know I been tradin. ",
+		"Takes money 2 make money. ",
+		"How efficient is this market lol. ",
+		"Can a bot ever have 2 much money?  I'm about to find out... ",
+		"Watup @KimKardashian ",
+	}
+	return phrases[rand.Intn(len(phrases))]
 }
 
 func getRobinhoodData(c *robinhood.Client) *robinhood.User {
