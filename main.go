@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"os"
 	"strconv"
@@ -21,6 +22,8 @@ const (
 )
 
 func main() {
+	go setupDummyWebserver()
+
 	godotenv.Load()
 	twitterApi := getTwitterApi()
 	rhClient := getRobinhoodClient()
@@ -50,6 +53,14 @@ type TradeInputs struct {
 	Symbol    string
 	OrderType string
 	Quantity  int
+}
+
+func setupDummyWebserver() {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello world!  I'm a bot, not a website.")
+	})
+	port := os.Getenv("PORT")
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), nil))
 }
 
 func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
