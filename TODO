@@ -1,0 +1,8 @@
+# TODO
+
+-- Add check if market is open (https://api.tradeking.com/v1/market/clock.xml)
+-- Pluralize "shares" correctly
+-- Validate symbol
+-- Validate trades (enough $$$ etc.)
+-- Handle robinhood failures
+-- More intelligently update balance once trade has been completed
