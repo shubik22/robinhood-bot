@@ -21,7 +21,7 @@ const (
 )
 
 func main() {
-	loadEnv()
+	godotenv.Load()
 	twitterApi := getTwitterApi()
 	rhClient := getRobinhoodClient()
 
@@ -256,11 +256,4 @@ func getRobinhoodData(c *robinhood.Client) *robinhood.User {
 	u.TotalBalance = totalBalance
 
 	return u
-}
-
-func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 }
