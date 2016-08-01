@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -24,7 +23,6 @@ const (
 
 func main() {
 	go setupDummyWebserver()
-	go runPingLoop()
 
 	godotenv.Load()
 	twitterApi := getTwitterApi()
@@ -63,25 +61,6 @@ func setupDummyWebserver() {
 	})
 	port := os.Getenv("PORT")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), nil))
-}
-
-func runPingLoop() {
-	for {
-		pingSelf()
-		seconds := rand.Intn(300)
-		ticker := time.NewTicker(time.Duration(seconds) * time.Second)
-		<-ticker.C
-	}
-}
-
-func pingSelf() {
-	resp, err := http.Get("http://robinhood-bot.herokuapp.com")
-	if err != nil {
-		log.Printf("Error pinging self: %v", err)
-	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	log.Printf("Pinged self: %v", body)
 }
 
 func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
