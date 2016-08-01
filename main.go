@@ -20,6 +20,7 @@ import (
 
 const (
 	mentionString = "@TweetMeTrades "
+	web2PdfUrl = "http://web2pdfconvert.com/engine.aspx?cURL=http://robinhood-bot.herokuapp.com"
 )
 
 func main() {
@@ -75,7 +76,7 @@ func runPingLoop() {
 }
 
 func pingSelf() {
-	resp, err := http.Get("http://robinhood-bot.herokuapp.com")
+	resp, err := http.Get(web2PdfUrl)
 	if err != nil {
 		log.Printf("Error pinging self: %v", err)
 	}
