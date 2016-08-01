@@ -68,6 +68,10 @@ func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient 
 	rhClient.Trades.PlaceTrade(ti.Symbol, ti.OrderType, ti.Quantity)
 	tweetStr := fmt.Sprintf(".@%v O yeaa placed a %v order for %v shares of %v", t.User.ScreenName, ti.OrderType, ti.Quantity, ti.Symbol)
 	twitterApi.PostTweet(tweetStr, params)
+
+	ticker := time.NewTicker(30 * time.Second)
+	<-ticker.C
+	tweetBalance(twitterApi, rhClient)
 }
 
 func parseTweet(t *anaconda.Tweet) (*TradeInputs, error) {
