@@ -1,5 +1,5 @@
 hash: ab29c85eeea16c6e040e3a99bcb46f8b890b627f0915d2b8fe49cb7081d6577f
-updated: 2016-07-31T14:39:20.021584057-07:00
+updated: 2016-07-31T21:28:17.405871411-07:00
 imports:
 - name: github.com/azr/backoff
   version: 53511d3c733003985b0b76f733df1f4d0095ee6a
@@ -20,5 +20,5 @@ imports:
 - name: github.com/leekchan/accounting
   version: 09d4f936370e4273440f1989d2e797bb72030172
 - name: github.com/shubik22/robinhood-client
-  version: 11901594e57a7bb81164de760b0a0f1749ddb253
+  version: e10c9ad8aa0f79b442ec7c6d9865ab27d2872946
 devImports: []

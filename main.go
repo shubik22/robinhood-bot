@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -15,16 +16,87 @@ import (
 	"github.com/shubik22/robinhood-client"
 )
 
+const (
+	mentionString = "@TweetMeTrades "
+)
+
 func main() {
 	loadEnv()
 	twitterApi := getTwitterApi()
 	rhClient := getRobinhoodClient()
 
-	ticker := time.NewTicker(1 * time.Hour)
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		for {
+			tweetBalance(twitterApi, rhClient)
+			<-ticker.C
+		}
+	}()
+
+	stream := twitterApi.UserStream(nil)
 	for {
-		tweetBalance(twitterApi, rhClient)
-		<-ticker.C
+		o := <-stream.C
+		t, ok := o.(anaconda.Tweet)
+		if !ok {
+			log.Println("Received non-tweet event")
+		} else {
+			log.Println("Received tweet")
+			handleMention(&t, twitterApi, rhClient)
+		}
 	}
+}
+
+type TradeInputs struct {
+	Symbol    string
+	OrderType string
+	Quantity  int
+}
+
+func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
+	if !strings.Contains(t.Text, mentionString) {
+		return
+	}
+	params := url.Values{}
+	params.Add("in_reply_to_status_id", t.IdStr)
+
+	ti, err := parseTweet(t)
+	if err != nil {
+		tweetStr := fmt.Sprintf(".@%v %v... %v", t.User.ScreenName, getParseErrorPhrase(), err.Error())
+		twitterApi.PostTweet(tweetStr, params)
+		return
+	}
+	rhClient.Trades.PlaceTrade(ti.Symbol, ti.OrderType, ti.Quantity)
+	tweetStr := fmt.Sprintf(".@%v O yeaa placed a %v order for %v shares of %v", t.User.ScreenName, ti.OrderType, ti.Quantity, ti.Symbol)
+	twitterApi.PostTweet(tweetStr, params)
+}
+
+func parseTweet(t *anaconda.Tweet) (*TradeInputs, error) {
+	text := t.Text
+	text = strings.Split(text, mentionString)[1]
+
+	words := strings.Split(text, " ")
+	if len(words) != 3 {
+		return nil, fmt.Errorf("invalid order format")
+	}
+
+	var ti TradeInputs
+	orderType := strings.ToLower(words[0])
+	if orderType == "buy" || orderType == "sell" {
+		ti.OrderType = orderType
+	} else {
+		return nil, fmt.Errorf("invalid order type (need buy or sell)")
+	}
+
+	quantity, err := strconv.Atoi(words[1])
+	if err != nil {
+		return nil, fmt.Errorf("invalid quantity (need integer)")
+	} else {
+		ti.Quantity = quantity
+	}
+
+	ti.Symbol = words[2]
+
+	return &ti, nil
 }
 
 func tweetBalance(twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
@@ -88,7 +160,7 @@ func createBalancesText(u *robinhood.User) string {
 func createTweetsFromText(text string) []string {
 	var tweets []string
 	words := strings.Split(text, " ")
-	currentTweet := getPhrase()
+	currentTweet := getBalancePhrase()
 	for _, word := range words {
 		if len(currentTweet) > 132 {
 			tweets = append(tweets, currentTweet)
@@ -110,13 +182,22 @@ func createTweetsFromText(text string) []string {
 	return tweets
 }
 
-func getPhrase() string {
+func getBalancePhrase() string {
 	phrases := [...]string{
 		"U know I been tradin. ",
 		"Takes money 2 make money. ",
 		"How efficient is this market lol. ",
 		"Can a bot ever have 2 much money?  I'm about to find out... ",
 		"Watup @KimKardashian ",
+	}
+	return phrases[rand.Intn(len(phrases))]
+}
+
+func getParseErrorPhrase() string {
+	phrases := [...]string{
+		"lot wut",
+		"haha no ",
+		"dad ",
 	}
 	return phrases[rand.Intn(len(phrases))]
 }
