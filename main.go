@@ -76,13 +76,11 @@ func runPingLoop() {
 }
 
 func pingSelf() {
-	resp, err := http.Get(web2PdfUrl)
+	_, err := http.Get(web2PdfUrl)
 	if err != nil {
 		log.Printf("Error pinging self: %v", err)
 	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	log.Printf("Pinged self: %v", body)
+	log.Printf("Pinged self")
 }
 
 func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
