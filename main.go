@@ -259,7 +259,7 @@ func getRobinhoodData(c *robinhood.Client) *robinhood.User {
 		panic(err)
 	}
 
-	cashBalance, _ := strconv.ParseFloat(account.Cash, 64)
+	cashBalance, _ := strconv.ParseFloat(account.BuyingPower, 64)
 	u.CashBalance = cashBalance
 
 	var positionBalance float64
