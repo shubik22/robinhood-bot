@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"strconv"
@@ -19,13 +18,9 @@ import (
 
 const (
 	mentionString = "@TweetMeTrades "
-	web2PdfUrl = "http://web2pdfconvert.com/engine.aspx?cURL=http://robinhood-bot.herokuapp.com"
 )
 
 func main() {
-	go setupDummyWebserver()
-	go runPingLoop()
-
 	godotenv.Load()
 	twitterApi := getTwitterApi()
 	rhClient := getRobinhoodClient()
@@ -55,31 +50,6 @@ type TradeInputs struct {
 	Symbol    string
 	OrderType string
 	Quantity  int
-}
-
-func setupDummyWebserver() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello world!  I'm a bot, not a website.")
-	})
-	port := os.Getenv("PORT")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), nil))
-}
-
-func runPingLoop() {
-	for {
-		pingSelf()
-		seconds := rand.Intn(300)
-		ticker := time.NewTicker(time.Duration(seconds) * time.Second)
-		<-ticker.C
-	}
-}
-
-func pingSelf() {
-	_, err := http.Get(web2PdfUrl)
-	if err != nil {
-		log.Printf("Error pinging self: %v", err)
-	}
-	log.Printf("Pinged self")
 }
 
 func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient *robinhood.Client) {
