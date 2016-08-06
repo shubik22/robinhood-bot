@@ -1,6 +1,5 @@
 # TODO
 
--- Add check if market is open (https://api.tradeking.com/v1/market/clock.xml)
 -- Pluralize "shares" correctly
 -- Validate symbol
 -- Validate trades (enough $$$ etc.)

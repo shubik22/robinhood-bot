@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net/url"
 	"os"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/joho/godotenv"
 	"github.com/leekchan/accounting"
+	"github.com/shubik22/robinhood-bot/utils"
 	"github.com/shubik22/robinhood-client"
 )
 
@@ -61,10 +61,17 @@ func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient 
 
 	ti, err := parseTweet(t)
 	if err != nil {
-		tweetStr := fmt.Sprintf(".@%v %v... %v", t.User.ScreenName, getParseErrorPhrase(), err.Error())
+		tweetStr := fmt.Sprintf(".@%v %v... %v", t.User.ScreenName, utils.GetParseErrorPhrase(), err.Error())
 		twitterApi.PostTweet(tweetStr, params)
 		return
 	}
+
+	if (!utils.MarketIsOpen()) {
+		tweetStr := fmt.Sprintf(".@%v %v", t.User.ScreenName, utils.GetMarketClosedPhrase())
+		twitterApi.PostTweet(tweetStr, params)
+		return
+	}
+
 	or, _, err := rhClient.Trades.PlaceTrade(ti.Symbol, ti.OrderType, ti.Quantity)
 	if err != nil {
 		log.Printf("Error placing %v trade for %v %v: %v", ti.OrderType, ti.Quantity, ti.Symbol, err)
@@ -170,7 +177,7 @@ func createBalancesText(u *robinhood.User) string {
 func createTweetsFromText(text string) []string {
 	var tweets []string
 	words := strings.Split(text, " ")
-	currentTweet := getBalancePhrase()
+	currentTweet := utils.GetBalancePhrase()
 	for _, word := range words {
 		if len(currentTweet) > 132 {
 			tweets = append(tweets, currentTweet)
@@ -190,26 +197,6 @@ func createTweetsFromText(text string) []string {
 	}
 
 	return tweets
-}
-
-func getBalancePhrase() string {
-	phrases := [...]string{
-		"U know I been tradin. ",
-		"Takes money 2 make money. ",
-		"How efficient is this market lol. ",
-		"Can a bot ever have 2 much money?  I'm about to find out... ",
-		"Watup @KimKardashian ",
-	}
-	return phrases[rand.Intn(len(phrases))]
-}
-
-func getParseErrorPhrase() string {
-	phrases := [...]string{
-		"lot wut",
-		"haha no ",
-		"dad ",
-	}
-	return phrases[rand.Intn(len(phrases))]
 }
 
 func getRobinhoodData(c *robinhood.Client) *robinhood.User {
