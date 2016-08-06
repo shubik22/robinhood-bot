@@ -1,6 +1,5 @@
 # TODO
 
--- Pluralize "shares" correctly
 -- Validate symbol
 -- Validate trades (enough $$$ etc.)
 -- Handle robinhood failures

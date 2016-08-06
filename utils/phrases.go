@@ -35,7 +35,7 @@ func getRandomPhrase(phrases []string) string {
 }
 
 func GetMarketClosedPhrase() string {
-  return getRandomPhrase(getMarketClosedPhrases())
+	return getRandomPhrase(getMarketClosedPhrases())
 }
 
 func GetBalancePhrase() string {

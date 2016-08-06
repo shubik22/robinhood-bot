@@ -66,7 +66,7 @@ func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient 
 		return
 	}
 
-	if (!utils.MarketIsOpen()) {
+	if !utils.MarketIsOpen() {
 		tweetStr := fmt.Sprintf(".@%v %v", t.User.ScreenName, utils.GetMarketClosedPhrase())
 		twitterApi.PostTweet(tweetStr, params)
 		return
@@ -79,7 +79,13 @@ func handleMention(t *anaconda.Tweet, twitterApi *anaconda.TwitterApi, rhClient 
 		log.Printf("Response for trade: %+v", or)
 	}
 
-	tweetStr := fmt.Sprintf(".@%v O yeaa placed a %v order for %v shares of %v", t.User.ScreenName, ti.OrderType, ti.Quantity, ti.Symbol)
+	tweetStr := fmt.Sprintf(
+		".@%v O yeaa placed a %v order for %v of %v",
+		t.User.ScreenName,
+		ti.OrderType,
+		pluralize(ti.Quantity, "share"),
+		ti.Symbol,
+	)
 	twitterApi.PostTweet(tweetStr, params)
 
 	ticker := time.NewTicker(30 * time.Second)
@@ -166,7 +172,7 @@ func createBalancesText(u *robinhood.User) string {
 
 	var pStrings []string
 	for _, p := range u.Positions {
-		pStrings = append(pStrings, fmt.Sprintf("%v shares of %v", p.Quantity, p.Symbol))
+		pStrings = append(pStrings, fmt.Sprintf("%v of %v", pluralize(int(p.Quantity), "share"), p.Symbol))
 	}
 	tweetStr += strings.Join(pStrings, ", ")
 	tweetStr += "."
@@ -197,6 +203,14 @@ func createTweetsFromText(text string) []string {
 	}
 
 	return tweets
+}
+
+func pluralize(num int, word string) string {
+	if num == 1 {
+		return fmt.Sprintf("%v %v", num, word)
+	} else {
+		return fmt.Sprintf("%v %vs", num, word)
+	}
 }
 
 func getRobinhoodData(c *robinhood.Client) *robinhood.User {
