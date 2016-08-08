@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	mentionString = "@TweetMeTrades "
+	mentionString = "@TWEETMETRADES "
 )
 
 type Bot struct {
@@ -39,13 +39,14 @@ func NewBot() *Bot {
 }
 
 func (b *Bot) handleMention(t *anaconda.Tweet) {
-	if !strings.Contains(t.Text, mentionString) {
+	text := strings.ToUpper(t.Text)
+	if !strings.Contains(text, mentionString) {
 		return
 	}
 	params := url.Values{}
 	params.Add("in_reply_to_status_id", t.IdStr)
 
-	ti, err := parseTweet(t)
+	ti, err := parseTweet(text)
 	if err != nil {
 		tweetStr := fmt.Sprintf(".@%v %v... %v", t.User.ScreenName, GetParseErrorPhrase(), err.Error())
 		b.twitterApi.PostTweet(tweetStr, params)
@@ -59,24 +60,23 @@ func (b *Bot) handleMention(t *anaconda.Tweet) {
 	}
 
 	or, _, err := b.rhClient.Trades.PlaceTrade(ti.Symbol, ti.OrderType, ti.Quantity)
+	var tweetStr string
 	if err != nil {
-		log.Printf("Error placing %v trade for %v %v: %v", ti.OrderType, ti.Quantity, ti.Symbol, err)
+		log.Printf("Error placing %v trade for %v %v: %+v", ti.OrderType, ti.Quantity, ti.Symbol, err)
+		tweetStr = fmt.Sprintf(".@%v %v", t.User.ScreenName, GetTradeErrorPhrase())
+		b.twitterApi.PostTweet(tweetStr, params)
 	} else {
 		log.Printf("Response for trade: %+v", or)
+		tweetStr := fmt.Sprintf(
+			".@%v O yeaa placed a %v order for %v of %v",
+			t.User.ScreenName,
+			ti.OrderType,
+			pluralize(ti.Quantity, "share"),
+			ti.Symbol,
+		)
+		b.twitterApi.PostTweet(tweetStr, params)
+		b.tweetBalanceWithDelay(30 * time.Second)
 	}
-
-	tweetStr := fmt.Sprintf(
-		".@%v O yeaa placed a %v order for %v of %v",
-		t.User.ScreenName,
-		ti.OrderType,
-		pluralize(ti.Quantity, "share"),
-		ti.Symbol,
-	)
-	b.twitterApi.PostTweet(tweetStr, params)
-
-	ticker := time.NewTicker(30 * time.Second)
-	<-ticker.C
-	b.tweetBalance()
 }
 
 func (b *Bot) getRobinhoodData() *robinhood.User {
@@ -144,6 +144,12 @@ func (b *Bot) tweetBalance() {
 			log.Println("Just tweeted: ", tweet.Text)
 		}
 	}
+}
+
+func (b *Bot) tweetBalanceWithDelay(d time.Duration) {
+	ticker := time.NewTicker(d)
+	<-ticker.C
+	b.tweetBalance()
 }
 
 func (b *Bot) ListenForTweets() {

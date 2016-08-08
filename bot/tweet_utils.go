@@ -2,16 +2,15 @@ package bot
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
 
-	"github.com/ChimeraCoder/anaconda"
 	"github.com/leekchan/accounting"
 	"github.com/shubik22/robinhood-client"
 )
 
-func parseTweet(t *anaconda.Tweet) (*TradeInputs, error) {
-	text := t.Text
+func parseTweet(text string) (*TradeInputs, error) {
 	text = strings.Split(text, mentionString)[1]
 
 	words := strings.Split(text, " ")
@@ -39,6 +38,13 @@ func parseTweet(t *anaconda.Tweet) (*TradeInputs, error) {
 	return &ti, nil
 }
 
+func shuffle(a []robinhood.SimplePosition) {
+	for i := range a {
+		j := rand.Intn(i + 1)
+		a[i], a[j] = a[j], a[i]
+	}
+}
+
 func createBalancesText(u *robinhood.User) string {
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
 
@@ -52,6 +58,7 @@ func createBalancesText(u *robinhood.User) string {
 	tweetStr += ", "
 
 	var pStrings []string
+	shuffle(u.Positions)
 	for _, p := range u.Positions {
 		pStrings = append(pStrings, fmt.Sprintf("%v of %v", pluralize(int(p.Quantity), "share"), p.Symbol))
 	}

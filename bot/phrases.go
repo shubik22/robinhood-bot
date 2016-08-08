@@ -30,6 +30,15 @@ func getMarketClosedPhrases() []string {
 	}
 }
 
+func getTradeErrorPhrases() []string {
+	return []string{
+		"This is a very complicated case Maude.  Your order did not go through.",
+		"I tried to place your trade but it failed.  I failed.  At placing your trade.",
+		"ha no sorry no trade :p",
+		"listen bud, your trade didn't go through.  i'm not sure it's not your fault, tbh",
+	}
+}
+
 func getRandomPhrase(phrases []string) string {
 	return phrases[rand.Intn(len(phrases))]
 }
@@ -44,4 +53,8 @@ func GetBalancePhrase() string {
 
 func GetParseErrorPhrase() string {
 	return getRandomPhrase(getParseErrorPhrases())
+}
+
+func GetTradeErrorPhrase() string {
+	return getRandomPhrase(getTradeErrorPhrases())
 }
