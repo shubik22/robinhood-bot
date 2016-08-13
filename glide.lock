@@ -1,5 +1,5 @@
 hash: ab29c85eeea16c6e040e3a99bcb46f8b890b627f0915d2b8fe49cb7081d6577f
-updated: 2016-08-07T20:50:25.106810317-07:00
+updated: 2016-08-13T13:21:53.602389441-07:00
 imports:
 - name: github.com/azr/backoff
   version: 53511d3c733003985b0b76f733df1f4d0095ee6a
@@ -8,7 +8,7 @@ imports:
 - name: github.com/ChimeraCoder/tokenbucket
   version: c5a927568de7aad8a58127d80bcd36ca4e71e454
 - name: github.com/dustin/go-jsonpointer
-  version: edeb52be0d426693945ed4d6da205faf2e084aca
+  version: e403c209efb17a3f4e6df1b57cf6e9c3083b172e
 - name: github.com/dustin/gojson
   version: 2e71ec9dd5adce3b168cd0dbde03b5cc04951c30
 - name: github.com/garyburd/go-oauth
@@ -20,5 +20,5 @@ imports:
 - name: github.com/leekchan/accounting
   version: 09d4f936370e4273440f1989d2e797bb72030172
 - name: github.com/shubik22/robinhood-client
-  version: f3eb09736dc91fdb8f5b91406056c384f77acbd8
+  version: 0d9f2bab15031e2e3cc2267b0a5641af451414f8
 devImports: []
